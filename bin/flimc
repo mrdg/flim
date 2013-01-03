@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require 'socket'
+
+client = UNIXSocket.open('/tmp/flim.sock')
+code = ARGF.read
+client.write(code)
+client.close
