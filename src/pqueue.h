@@ -19,6 +19,7 @@ struct task {
     PtTimestamp start;
     struct task *next;
     int task_type;
+    int function_key;
     const char *lua_function;
     void (* c_function) (void *data);
     void *fn_data;

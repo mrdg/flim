@@ -23,7 +23,7 @@ static int flm_note(lua_State *L)
     note->pitch    = luaL_checknumber(L, 2);
     note->velocity = luaL_checknumber(L, 3);
     int duration  = luaL_checknumber(L, 4);
-    
+
     struct task *note_on  = task_create(time);
     struct task *note_off = task_create(time + duration);
 
@@ -52,7 +52,7 @@ static int flm_callback(lua_State *L)
 {
     PtTimestamp time = lua_tonumber(L, 1);
     struct task *t = task_create(time);
-    t->lua_function = lua_tostring(L, 2);
+    t->function_key = luaL_ref(L, LUA_REGISTRYINDEX);
     t->task_type = LUA_FUNCTION;
     flm_scheduler_add_task(flim->scheduler, t);
     return 1;

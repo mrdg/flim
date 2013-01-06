@@ -7,12 +7,13 @@
  * (60 (secs per min.) / 480 (bangs per min.)) / 10 = 0.0125
  * resolution = 0.01 secs = 10 ms
  */
+
 #define RESOLUTION_MS 10
 
 void exec_task(struct flm_scheduler *scheduler, struct task *t)
 {
     if (t->task_type == LUA_FUNCTION) {
-        lua_getglobal(scheduler->lua, t->lua_function);
+        lua_rawgeti(scheduler->lua, LUA_REGISTRYINDEX, t->function_key);
         lua_pushnumber(scheduler->lua, t->start);
         lua_pcall(scheduler->lua, 1, 1, 0);
 
@@ -22,8 +23,8 @@ void exec_task(struct flm_scheduler *scheduler, struct task *t)
 }
 
 void dispatch(PtTimestamp time, void *data)
-{ 
-    struct flm_scheduler *scheduler = 
+{
+    struct flm_scheduler *scheduler =
         (struct flm_scheduler * ) data;
 
     struct task *first = dequeue(scheduler->queue, time);
@@ -41,7 +42,7 @@ void dispatch(PtTimestamp time, void *data)
         while (current != NULL) {
             exec_task(scheduler, current);
             prev = current;
-            current = current->next; 
+            current = current->next;
             free(prev);
         }
     }

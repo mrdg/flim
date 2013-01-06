@@ -45,8 +45,6 @@ int server_run(struct flim *flim)
             exit(1);
         }
 
-        printf("Connected.\n");
-
         n = recv(s2, str, BUFFER_SIZE, 0);
         if (n < 0) {
             perror("recv");
