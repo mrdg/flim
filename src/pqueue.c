@@ -13,7 +13,6 @@ struct task * task_create(PtTimestamp start)
     struct task *t = malloc(sizeof(struct task));
     t->start = start;
     t->next  = NULL;
-    t->lua_function = NULL;
     t->c_function = NULL;
     t->fn_data = NULL;
     return t;

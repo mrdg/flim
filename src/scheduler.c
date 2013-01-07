@@ -14,8 +14,22 @@ void exec_task(struct flm_scheduler *scheduler, struct task *t)
 {
     if (t->task_type == LUA_FUNCTION) {
         lua_rawgeti(scheduler->lua, LUA_REGISTRYINDEX, t->function_key);
-        lua_pushnumber(scheduler->lua, t->start);
-        lua_pcall(scheduler->lua, 1, 1, 0);
+        int args = 0;
+
+        if (t->args_key == LUA_NOREF) {
+            lua_pushnumber(scheduler->lua, t->start);
+            args = 1;
+        } else {
+            lua_rawgeti(scheduler->lua, LUA_REGISTRYINDEX, t->args_key);
+
+            lua_pushnil(scheduler->lua);
+            while (lua_next(scheduler->lua, -2) != 0) {
+                lua_insert(scheduler->lua, -3);
+                args++;
+            }
+            lua_pop(scheduler->lua, 1);
+        }
+        lua_pcall(scheduler->lua, args, 0, 0);
 
     } else if (t->task_type == C_FUNCTION) {
         t->c_function(t->fn_data);

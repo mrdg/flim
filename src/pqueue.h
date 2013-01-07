@@ -8,8 +8,6 @@
 #include "porttime.h"
 #endif
 
-#define QUEUE_LENGTH 250
-
 enum task_types {
     C_FUNCTION   = 0,
     LUA_FUNCTION = 1
@@ -20,7 +18,7 @@ struct task {
     struct task *next;
     int task_type;
     int function_key;
-    const char *lua_function;
+    int args_key;
     void (* c_function) (void *data);
     void *fn_data;
 };

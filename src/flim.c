@@ -41,7 +41,6 @@ static int flm_note(lua_State *L)
     return 0;
 }
 
-
 static int now(lua_State *L)
 {
     lua_pushnumber(L, Pt_Time());
@@ -52,8 +51,17 @@ static int flm_callback(lua_State *L)
 {
     PtTimestamp time = lua_tonumber(L, 1);
     struct task *t = task_create(time);
+
+    int nargs = lua_gettop(L);
+    if (nargs > 2) {
+        t->args_key = luaL_ref(L, LUA_REGISTRYINDEX);
+    } else {
+        t->args_key = LUA_NOREF;
+    }
+
     t->function_key = luaL_ref(L, LUA_REGISTRYINDEX);
     t->task_type = LUA_FUNCTION;
+
     flm_scheduler_add_task(flim->scheduler, t);
     return 1;
 }
