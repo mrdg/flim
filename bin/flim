@@ -1,0 +1,18 @@
+#!/bin/sh
+
+usage="usage: $0 <start | stop>"
+pid_path="/tmp/flim.pid"
+
+if [ "$1" = "start" ]; then
+  flimd &
+  echo $! > $pid_path
+
+elif [ "$1" = "stop" ]; then
+  pid=`cat $pid_path`
+  if kill -0 $pid &> /dev/null; then
+    kill -TERM $pid
+  fi
+
+else
+  echo $usage
+fi
