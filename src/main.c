@@ -4,5 +4,5 @@
 int main(int argc, char *argv[])
 {
     struct flim *flim = flm_new();
-    server_run(flim);
+    flm_server_start(flim);
 }

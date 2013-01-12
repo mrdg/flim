@@ -7,4 +7,4 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-int server_run();
+void flm_server_start();
