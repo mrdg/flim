@@ -1,4 +1,4 @@
-program_NAME := ../bin/flim
+program_NAME := flimd
 program_SRCS := $(wildcard *.c)
 program_OBJS := ${program_SRCS:.c=.o}
 program_INCLUDE_DIRS := lua/src/
@@ -11,6 +11,11 @@ test_OBJS := $(test_SRCS:.c=.o)
 CFLAGS  += -g -Wall
 LDFLAGS += $(foreach librarydir,$(program_LIBRARY_DIRS),-L$(librarydir))
 LDFLAGS += $(foreach library,$(program_LIBRARIES),-l$(library))
+
+FLIM_INSTALL=$(QUIET_INSTALL)($INSTALL)
+
+PREFIX?=/usr/local
+INSTALL_BIN=$(PREFIX)/bin
 
 .PHONY: all clean distclean print
 
@@ -35,3 +40,7 @@ clean:
 cleanall:
 	@- $(MAKE) clean
 	@- cd lua && $(MAKE) clean
+
+install: $(program_NAME)
+	cp -pf $(program_NAME) $(INSTALL_BIN)
+	cp -pf ../bin/flim $(INSTALL_BIN)
