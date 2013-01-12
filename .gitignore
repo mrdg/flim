@@ -1,2 +1,4 @@
 play.lua
-bin/flimd
+src/flimd
+src/*.o
+src/lua
