@@ -33,14 +33,14 @@ void flm_server_start(struct flim *flim)
     socklen_t sock_len;
     while (1) {
         sock_len = sizeof(remote);
-        if ((server = accept(server,
+        if ((client = accept(server,
                         (struct sockaddr *) &remote, &sock_len)) == -1) {
 
             perror("accept");
             exit(1);
         }
 
-        int received = recv(server, buffer, BUFFER_SIZE, 0);
+        int received = recv(client, buffer, BUFFER_SIZE, 0);
         if (received < 0) {
             perror("recv");
         }
