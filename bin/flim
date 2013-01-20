@@ -3,15 +3,24 @@
 usage="usage: $0 <start | stop>"
 pid_path="/tmp/flim.pid"
 
-if [ "$1" = "start" ]; then
+function start() {
   flimd &
   echo $! > $pid_path
+}
 
-elif [ "$1" = "stop" ]; then
+function stop() {
   pid=`cat $pid_path`
   if kill -0 $pid &> /dev/null; then
     kill -TERM $pid
   fi
+}
+
+if [ "$1" = "start" ]; then
+  stop
+  start
+
+elif [ "$1" = "stop" ]; then
+  stop
 
 else
   echo $usage
