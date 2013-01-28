@@ -1,5 +1,6 @@
 #include "flim.h"
 #include "server.h"
+#include "logger.h"
 
 #define SOCK_PATH "/tmp/flim.sock"
 #define BUFFER_SIZE 10000
@@ -32,6 +33,7 @@ void flm_server_start(struct flim *flim)
     char buffer[BUFFER_SIZE];
     socklen_t sock_len;
     while (1) {
+        flm_log("Starting server...");
         sock_len = sizeof(remote);
         if ((client = accept(server,
                         (struct sockaddr *) &remote, &sock_len)) == -1) {

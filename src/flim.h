@@ -5,7 +5,7 @@
 #include "server.h"
 #include "midi_out.h"
 #include "scheduler.h"
-
+#include "logger.h"
 #include "pqueue.h"
 
 struct flim {

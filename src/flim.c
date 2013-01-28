@@ -106,7 +106,12 @@ lua_State * flm_init_lua()
 
 int flm_eval(struct flim *flim, char *code)
 {
-    return luaL_dostring(flim->lua, code);
+    int ret = luaL_dostring(flim->lua, code);
+    if (ret == 1) {
+        flm_log(lua_tostring(flim->lua, -1));
+    }
+
+    return ret;
 }
 
 
