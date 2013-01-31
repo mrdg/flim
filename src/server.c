@@ -32,8 +32,8 @@ void flm_server_start(struct flim *flim)
 
     char buffer[BUFFER_SIZE];
     socklen_t sock_len;
+    flm_log("Starting server...");
     while (1) {
-        flm_log("Starting server...");
         sock_len = sizeof(remote);
         if ((client = accept(server,
                         (struct sockaddr *) &remote, &sock_len)) == -1) {

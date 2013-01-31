@@ -89,6 +89,10 @@ lua_State * flm_init_lua()
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
 
+    if (luaL_loadfile(L, "./runtime/flim.lua") == 0) {
+        lua_pcall(L, 0, 0, 0);
+    }
+
     lua_pushcfunction(L, test_sound);
     lua_setglobal(L, "test_sound");
 
