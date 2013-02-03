@@ -40,11 +40,11 @@ struct midi_out *create_midi_out()
     return output;
 }
 
-void flm_midi_note_on(struct midi_out *output, int pitch, int velocity)
+void flm_midi_note_on(struct midi_out *output, int pitch, int velocity, int channel)
 {
     PmEvent event[1];
     event[0].timestamp = Pt_Time(NULL);
-    event[0].message   = Pm_Message(NOTE_ON, pitch, velocity);
+    event[0].message   = Pm_Message(NOTE_ON + (channel - 1), pitch, velocity);
 
     pthread_mutex_lock(&output->lock);
     output->error = Pm_Write(output->stream, event, 1);
@@ -53,11 +53,11 @@ void flm_midi_note_on(struct midi_out *output, int pitch, int velocity)
     handle_error(output->error, "Error writing to stream: %s\n");
 }
 
-void flm_midi_note_off(struct midi_out *output, int pitch, int velocity)
+void flm_midi_note_off(struct midi_out *output, int pitch, int velocity, int channel)
 {
     PmEvent event[1];
     event[0].timestamp = Pt_Time(NULL);
-    event[0].message   = Pm_Message(NOTE_OFF, pitch, 0);
+    event[0].message   = Pm_Message(NOTE_OFF + (channel - 1), pitch, 0);
 
     pthread_mutex_lock(&output->lock);
     output->error = Pm_Write(output->stream, event, 1);

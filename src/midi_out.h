@@ -16,12 +16,12 @@
 struct note_data {
     int pitch;
     int velocity;
+    int channel;
 };
 
 struct midi_out * create_midi_out();
 void destroy_midi_out(struct midi_out *output);
-int note(struct midi_out *output, int pitch, int duration, int velocity);
 
-void flm_midi_note_on(struct midi_out *output, int pitch, int velocity);
-void flm_midi_note_off(struct midi_out *output, int pitch, int velocity);
+void flm_midi_note_on(struct midi_out *output, int pitch, int velocity, int channel);
+void flm_midi_note_off(struct midi_out *output, int pitch, int velocity, int channel);
 

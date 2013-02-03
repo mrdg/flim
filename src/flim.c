@@ -6,13 +6,13 @@ struct flim *flim;
 void flm_note_on(void *data)
 {
     struct note_data *note = (struct note_data *) data;
-    flm_midi_note_on(flim->output, note->pitch, note->velocity);
+    flm_midi_note_on(flim->output, note->pitch, note->velocity, note->channel);
 }
 
 void flm_note_off(void *data)
 {
     struct note_data *note = (struct note_data *) data;
-    flm_midi_note_off(flim->output, note->pitch, note->velocity);
+    flm_midi_note_off(flim->output, note->pitch, note->velocity, note->channel);
 }
 
 static int flm_note(lua_State *L)
@@ -23,6 +23,11 @@ static int flm_note(lua_State *L)
     note->pitch    = luaL_checknumber(L, 2);
     note->velocity = luaL_checknumber(L, 3);
     int duration  = luaL_checknumber(L, 4);
+    if lua_isnoneornil(L, 5) {
+        note->channel = 1;
+    } else {
+        note->channel = luaL_checknumber(L, 5);
+    }
 
     struct task *note_on  = task_create(time);
     struct task *note_off = task_create(time + duration);
