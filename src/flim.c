@@ -71,24 +71,6 @@ static int flm_callback(lua_State *L)
     return 1;
 }
 
-void test_sound_fn(void *data)
-{
-    puts("Test sound called");
-}
-
-static int test_sound(lua_State *L)
-{
-    PtTimestamp time = lua_tonumber(L, 1);
-
-    struct task *t = task_create(time);
-    t->c_function = test_sound_fn;
-    t->task_type = C_FUNCTION;
-    t->fn_data = NULL;
-
-    flm_scheduler_add_task(flim->scheduler, t);
-    return 0;
-}
-
 lua_State * flm_init_lua()
 {
     lua_State *L = luaL_newstate();
@@ -97,9 +79,6 @@ lua_State * flm_init_lua()
     if (luaL_loadfile(L, "./runtime/flim.lua") == 0) {
         lua_pcall(L, 0, 0, 0);
     }
-
-    lua_pushcfunction(L, test_sound);
-    lua_setglobal(L, "test_sound");
 
     lua_pushcfunction(L, flm_callback);
     lua_setglobal(L, "callback");
