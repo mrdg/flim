@@ -1,4 +1,6 @@
 play.lua
+bin/test
 src/flimd
 src/*.o
 src/lua
+tests/*.o
