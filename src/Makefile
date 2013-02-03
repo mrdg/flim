@@ -1,4 +1,4 @@
-program_NAME := flimd
+program_NAME := flim
 program_SRCS := $(wildcard *.c)
 program_OBJS := ${program_SRCS:.c=.o}
 program_INCLUDE_DIRS := lua/src/
@@ -43,4 +43,3 @@ cleanall:
 
 install: $(program_NAME)
 	cp -pf $(program_NAME) $(INSTALL_BIN)
-	cp -pf ../bin/flim $(INSTALL_BIN)

@@ -3,4 +3,5 @@ bin/test
 src/flimd
 src/*.o
 src/lua
+src/flim
 tests/*.o
