@@ -8,17 +8,22 @@
 #include "porttime.h"
 #endif
 
+#include "../js-1.8.5/js/src/jsapi.h"
+
 enum task_types {
     C_FUNCTION   = 0,
-    LUA_FUNCTION = 1
+    JS_FUNCTION = 1
 };
 
 struct task {
     PtTimestamp start;
     struct task *next;
     int task_type;
-    int function_key;
-    int args_key;
+
+    jsval js_function;
+    jsval *js_args;
+    int js_argc;
+
     void (* c_function) (void *data);
     void *fn_data;
 };

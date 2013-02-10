@@ -12,25 +12,12 @@
 
 void exec_task(struct flm_scheduler *scheduler, struct task *t)
 {
-    if (t->task_type == LUA_FUNCTION) {
-        lua_rawgeti(scheduler->lua, LUA_REGISTRYINDEX, t->function_key);
-        int args = 0;
+    if (t->task_type == JS_FUNCTION) {
+        jsval rval;
+        JS_CallFunctionValue(scheduler->cx,
+                NULL, t->js_function, t->js_argc, t->js_args, &rval);
 
-        if (t->args_key == LUA_NOREF) {
-            lua_pushnumber(scheduler->lua, t->start);
-            args = 1;
-        } else {
-            lua_rawgeti(scheduler->lua, LUA_REGISTRYINDEX, t->args_key);
-
-            lua_pushnil(scheduler->lua);
-            while (lua_next(scheduler->lua, -2) != 0) {
-                lua_insert(scheduler->lua, -3);
-                args++;
-            }
-            lua_pop(scheduler->lua, 1);
-        }
-        lua_pcall(scheduler->lua, args, 0, 0);
-
+        free(t->js_args);
     } else if (t->task_type == C_FUNCTION) {
         t->c_function(t->fn_data);
     }
@@ -63,11 +50,11 @@ void dispatch(PtTimestamp time, void *data)
 
 }
 
-struct flm_scheduler * flm_scheduler_create(lua_State *L)
+struct flm_scheduler * flm_scheduler_create(JSContext *cx)
 {
     struct flm_scheduler *scheduler = malloc(sizeof(struct flm_scheduler));
-    scheduler->lua = L;
     scheduler->queue = pqueue_create();
+    scheduler->cx = cx;
     return scheduler;
 }
 

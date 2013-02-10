@@ -3,6 +3,36 @@
 
 struct flim *flim;
 
+void reportError(JSContext *cx, const char *message, JSErrorReport *report) {
+            flm_log(message);
+}
+
+static JSBool js_print(JSContext *cx, uintN argc, jsval *vp)
+{
+    jsval *argv;
+    uintN i;
+    JSString *str;
+    char *bytes;
+
+    argv = JS_ARGV(cx, vp);
+    for (i = 0; i < argc; i++) {
+        str = JS_ValueToString(cx, argv[i]);
+        if (!str)
+            return JS_FALSE;
+        bytes = JS_EncodeString(cx, str);
+        if (!bytes)
+            return JS_FALSE;
+        fprintf(stdout, "%s%s", i ? " " : "", bytes);
+        JS_free(cx, bytes);
+    }
+
+    fputc('\n', stdout);
+    fflush(stdout);
+
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
 void flm_note_on(void *data)
 {
     struct note_data *note = (struct note_data *) data;
@@ -15,19 +45,13 @@ void flm_note_off(void *data)
     flm_midi_note_off(flim->output, note->pitch, note->velocity, note->channel);
 }
 
-static int flm_note(lua_State *L)
+static JSBool note(JSContext *cx, uintN argc, jsval *vp)
 {
     struct note_data *note = malloc(sizeof(struct note_data));
-
-    int time      = luaL_checknumber(L, 1);
-    note->pitch    = luaL_checknumber(L, 2);
-    note->velocity = luaL_checknumber(L, 3);
-    int duration  = luaL_checknumber(L, 4);
-    if lua_isnoneornil(L, 5) {
-        note->channel = 1;
-    } else {
-        note->channel = luaL_checknumber(L, 5);
-    }
+    int time, duration;
+    JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "jjjj",
+            &time, &note->pitch, &note->velocity, &duration);
+    note->channel = 1;
 
     struct task *note_on  = task_create(time);
     struct task *note_off = task_create(time + duration);
@@ -43,73 +67,114 @@ static int flm_note(lua_State *L)
     flm_scheduler_add_task(flim->scheduler, note_on);
     flm_scheduler_add_task(flim->scheduler, note_off);
 
+    return JS_TRUE;
+}
+
+static JSBool now(JSContext *cx, uintN argc, jsval *vp)
+{
+    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(Pt_Time()));
+    return JS_TRUE;
+}
+
+static JSBool at(JSContext *cx, uintN argc, jsval *vp)
+{
+    if (argc < 2) {
+        flm_log("'at' requires at least 2 arguments: <time> <function>");
+        return JS_FALSE;
+    }
+
+    jsval *arguments = JS_ARGV(cx, vp);
+    PtTimestamp time = JSVAL_TO_INT(arguments[0]);
+    struct task *t = task_create(time);
+
+    t->js_argc = 0;
+
+    if (JS_TypeOfValue(cx, arguments[1]) == JSTYPE_FUNCTION) {
+        t->js_function = arguments[1];
+    } else {
+        flm_log("2nd argument of 'at' should be a function");
+        return JS_FALSE;
+    }
+
+    t->js_argc = (argc > 2 ? argc - 2 : 1);
+    jsval *fn_args = malloc(t->js_argc * sizeof(jsval));
+    if (argc > 2) {
+        int i;
+        for (i = 2; i < argc; i++) {
+            fn_args[i - 2] = arguments[i];
+        }
+    } else {
+        fn_args[0] = time;
+    }
+
+    t->js_args = fn_args;
+    t->task_type = JS_FUNCTION;
+    flm_scheduler_add_task(flim->scheduler, t);
+    return JS_TRUE;
+}
+
+static JSFunctionSpec js_functions[] = {
+    JS_FS("print", js_print, 0, 0),
+    JS_FS("note", note, 4, 0),
+    JS_FS("now", now, 0, 0),
+    JS_FS("at", at, 2, 0),
+    JS_FS_END
+};
+
+
+static JSClass global_class = { "global", JSCLASS_GLOBAL_FLAGS,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS };
+
+int initialize_js(struct flim *flim)
+{
+    flim->js_runtime = JS_NewRuntime(8L * 1024L * 1024L);
+    if (flim->js_runtime == NULL)
+       return 1;
+
+    flim->js_context = JS_NewContext(flim->js_runtime, 8192);
+    if (flim->js_context == NULL)
+       return 1;
+
+    JS_SetOptions(flim->js_context, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT);
+    JS_SetVersion(flim->js_context, JSVERSION_LATEST);
+    JS_SetErrorReporter(flim->js_context, reportError);
+
+    flim->global = JS_NewCompartmentAndGlobalObject(
+                                    flim->js_context, &global_class, NULL);
+    if (flim->global == NULL)
+       return 1;
+
+    if (!JS_InitStandardClasses(flim->js_context, flim->global))
+       return 1;
+
+    if (!JS_DefineFunctions(flim->js_context, flim->global, js_functions))
+        return 1;
+
     return 0;
 }
 
-static int now(lua_State *L)
+int eval(struct flim *flim, char *code)
 {
-    lua_pushnumber(L, Pt_Time());
-    return 1;
-}
-
-static int flm_callback(lua_State *L)
-{
-    PtTimestamp time = lua_tonumber(L, 1);
-    struct task *t = task_create(time);
-
-    int nargs = lua_gettop(L);
-    if (nargs > 2) {
-        t->args_key = luaL_ref(L, LUA_REGISTRYINDEX);
+    jsval rval;
+    if (!JS_EvaluateScript(flim->js_context, flim->global,
+                code, strlen(code), "script", 1, &rval)) {
+        return 0;
     } else {
-        t->args_key = LUA_NOREF;
+        return 1;
     }
-
-    t->function_key = luaL_ref(L, LUA_REGISTRYINDEX);
-    t->task_type = LUA_FUNCTION;
-
-    flm_scheduler_add_task(flim->scheduler, t);
-    return 1;
-}
-
-lua_State * flm_init_lua()
-{
-    lua_State *L = luaL_newstate();
-    luaL_openlibs(L);
-
-    if (luaL_loadfile(L, "./runtime/flim.lua") == 0) {
-        lua_pcall(L, 0, 0, 0);
-    }
-
-    lua_pushcfunction(L, flm_callback);
-    lua_setglobal(L, "callback");
-
-    lua_pushcfunction(L, flm_note);
-    lua_setglobal(L, "note");
-
-    lua_pushcfunction(L, now);
-    lua_setglobal(L, "now");
-
-    return L;
-}
-
-int flm_eval(struct flim *flim, char *code)
-{
-    int ret = luaL_dostring(flim->lua, code);
-    if (ret == 1) {
-        flm_log(lua_tostring(flim->lua, -1));
-    }
-
-    return ret;
 }
 
 
 struct flim * flm_new()
 {
+
     flim = malloc(sizeof(struct flim));
 
-    flim->lua = flm_init_lua();
+    initialize_js(flim);
 
-    flim->scheduler = flm_scheduler_create(flim->lua);
+    flim->scheduler = flm_scheduler_create(flim->js_context);
     flm_scheduler_start(flim->scheduler);
 
     flim->output = create_midi_out();

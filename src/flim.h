@@ -1,6 +1,4 @@
-#include "lua.h"
-#include "lauxlib.h"
-#include "lualib.h"
+#include "../js-1.8.5/js/src/jsapi.h"
 
 #include "server.h"
 #include "midi_out.h"
@@ -11,9 +9,11 @@
 struct flim {
     struct flm_scheduler *scheduler;
     struct midi_out *output;
-    lua_State *lua;
+    JSRuntime *js_runtime;
+    JSContext *js_context;
+    JSObject *global;
 };
 
 struct flim * flm_new();
-int flm_eval(struct flim *flim, char *code);
+int eval(struct flim *flim, char *code);
 
