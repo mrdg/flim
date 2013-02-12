@@ -1,5 +1,6 @@
 #include "flim.h"
 #include <assert.h>
+#include <sys/stat.h>
 
 struct flim *flim;
 
@@ -127,6 +128,24 @@ static JSClass global_class = { "global", JSCLASS_GLOBAL_FLAGS,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS };
 
+char * read_file(char * name) {
+    FILE *file = fopen(name, "r");
+    if (!file) {
+        printf("Error opening file: %s\n", name);
+        return NULL;
+    }
+
+    struct stat st;
+    fstat(fileno(file), &st);
+    char *buffer;
+    buffer = malloc((st.st_size + 1) * sizeof(char));
+    fread(buffer, sizeof(char), st.st_size, file);
+    fclose(file);
+    buffer[st.st_size] = '\0';
+    return buffer;
+}
+
+
 int initialize_js(struct flim *flim)
 {
     flim->js_runtime = JS_NewRuntime(8L * 1024L * 1024L);
@@ -152,7 +171,10 @@ int initialize_js(struct flim *flim)
     if (!JS_DefineFunctions(flim->js_context, flim->global, js_functions))
         return 1;
 
-    return 0;
+
+    char *code = read_file("runtime/flim.js");
+    printf("%s\n", code);
+    return eval(flim, code);
 }
 
 int eval(struct flim *flim, char *code)
