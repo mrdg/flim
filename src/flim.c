@@ -50,9 +50,15 @@ static JSBool note(JSContext *cx, uintN argc, jsval *vp)
 {
     struct note_data *note = malloc(sizeof(struct note_data));
     int time, duration;
-    JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "jjjj",
+    if (argc < 5) {
+        JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "jjjj",
             &time, &note->pitch, &note->velocity, &duration);
-    note->channel = 1;
+
+        note->channel = 1;
+    } else {
+        JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "jjjjj",
+                &time, &note->pitch, &note->velocity, &duration, &note->channel);
+    }
 
     struct task *note_on  = task_create(time);
     struct task *note_off = task_create(time + duration);
