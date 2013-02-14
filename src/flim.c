@@ -51,12 +51,12 @@ static JSBool note(JSContext *cx, uintN argc, jsval *vp)
     struct note_data *note = malloc(sizeof(struct note_data));
     int time, duration;
     if (argc < 5) {
-        JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "jjjj",
+        JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuuu",
             &time, &note->pitch, &note->velocity, &duration);
 
         note->channel = 1;
     } else {
-        JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "jjjjj",
+        JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuuuu",
                 &time, &note->pitch, &note->velocity, &duration, &note->channel);
     }
 
@@ -91,7 +91,9 @@ static JSBool at(JSContext *cx, uintN argc, jsval *vp)
     }
 
     jsval *arguments = JS_ARGV(cx, vp);
-    PtTimestamp time = JSVAL_TO_INT(arguments[0]);
+
+    uint32_t time;
+    JS_ValueToECMAUint32(cx, arguments[0], &time);
     struct task *t = task_create(time);
 
     t->js_argc = 0;
