@@ -153,6 +153,12 @@ char * read_file(char * name) {
     return buffer;
 }
 
+void eval_file(char * name)
+{
+    char *code = read_file(name);
+    eval(flim, code);
+    free(code);
+}
 
 int initialize_js(struct flim *flim)
 {
@@ -179,10 +185,10 @@ int initialize_js(struct flim *flim)
     if (!JS_DefineFunctions(flim->js_context, flim->global, js_functions))
         return 1;
 
+    eval_file("runtime/flim.js");
+    eval_file("runtime/underscore.js");
 
-    char *code = read_file("runtime/flim.js");
-    printf("%s\n", code);
-    return eval(flim, code);
+    return 0;
 }
 
 int eval(struct flim *flim, char *code)
