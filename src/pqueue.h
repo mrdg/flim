@@ -26,7 +26,7 @@ struct task {
 
     void (* c_function) (void *data);
     void *fn_data;
-};
+} task;
 
 struct pqueue {
     pthread_mutex_t lock;

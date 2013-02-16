@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "pqueue.h"
+
 #ifndef __PORTTIME
 #define __PORTTIME
 #include "porttime.h"
@@ -8,15 +10,11 @@
 
 #include "../js-1.8.5/js/src/jsapi.h"
 
-struct flm_scheduler {
+struct scheduler {
     struct pqueue *queue;
     JSContext *cx;
 };
 
-int scheduler_start();
-
-typedef void (*task)(PtTimestamp tasktime);
-// int flm_scheduler_add_task(struct flm_scheduler *sched, struct task *t);
-
-struct flm_scheduler * flm_scheduler_create(JSContext *cx);
-void flm_scheduler_start(struct flm_scheduler * scheduler);
+struct scheduler * create_scheduler(JSContext *cx);
+void start_scheduler(struct scheduler *scheduler);
+void schedule_task(struct scheduler *sched, struct task *t);

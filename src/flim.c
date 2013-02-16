@@ -71,11 +71,12 @@ static JSBool note(JSContext *cx, uintN argc, jsval *vp)
     note_off->fn_data    = note;
     note_off->task_type  = C_FUNCTION;
 
-    flm_scheduler_add_task(flim->scheduler, note_on);
-    flm_scheduler_add_task(flim->scheduler, note_off);
+    schedule_task(flim->scheduler, note_on);
+    schedule_task(flim->scheduler, note_off);
 
     return JS_TRUE;
 }
+
 
 static JSBool now(JSContext *cx, uintN argc, jsval *vp)
 {
@@ -118,7 +119,7 @@ static JSBool at(JSContext *cx, uintN argc, jsval *vp)
 
     t->js_args = fn_args;
     t->task_type = JS_FUNCTION;
-    flm_scheduler_add_task(flim->scheduler, t);
+    schedule_task(flim->scheduler, t);
     return JS_TRUE;
 }
 
@@ -160,61 +161,37 @@ void eval_file(char * name)
     free(code);
 }
 
-int initialize_js(struct flim *flim)
+void initialize_js(struct flim *flim)
 {
     flim->js_runtime = JS_NewRuntime(8L * 1024L * 1024L);
-    if (flim->js_runtime == NULL)
-       return 1;
-
     flim->js_context = JS_NewContext(flim->js_runtime, 8192);
-    if (flim->js_context == NULL)
-       return 1;
-
     JS_SetOptions(flim->js_context, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT);
     JS_SetVersion(flim->js_context, JSVERSION_LATEST);
     JS_SetErrorReporter(flim->js_context, reportError);
 
     flim->global = JS_NewCompartmentAndGlobalObject(
                                     flim->js_context, &global_class, NULL);
-    if (flim->global == NULL)
-       return 1;
-
-    if (!JS_InitStandardClasses(flim->js_context, flim->global))
-       return 1;
-
-    if (!JS_DefineFunctions(flim->js_context, flim->global, js_functions))
-        return 1;
+    JS_InitStandardClasses(flim->js_context, flim->global);
+    JS_DefineFunctions(flim->js_context, flim->global, js_functions);
 
     eval_file("runtime/flim.js");
     eval_file("runtime/underscore.js");
-
-    return 0;
 }
 
-int eval(struct flim *flim, char *code)
+void eval(struct flim *flim, char *code)
 {
     jsval rval;
-    if (!JS_EvaluateScript(flim->js_context, flim->global,
-                code, strlen(code), "script", 1, &rval)) {
-        return 0;
-    } else {
-        return 1;
-    }
+    JS_EvaluateScript(flim->js_context, flim->global,
+                       code, strlen(code), "script", 1, &rval);
 }
-
 
 struct flim * flm_new()
 {
-
     flim = malloc(sizeof(struct flim));
-
     initialize_js(flim);
-
-    flim->scheduler = flm_scheduler_create(flim->js_context);
-    flm_scheduler_start(flim->scheduler);
-
+    flim->scheduler = create_scheduler(flim->js_context);
+    start_scheduler(flim->scheduler);
     flim->output = create_midi_out();
-
     return flim;
 }
 

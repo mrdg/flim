@@ -1,7 +1,5 @@
 #include <stdlib.h>
-
 #include "scheduler.h"
-#include "pqueue.h"
 
 /*
  * (60 (secs per min.) / 480 (bangs per min.)) / 10 = 0.0125
@@ -10,7 +8,7 @@
 
 #define RESOLUTION_MS 10
 
-void exec_task(struct flm_scheduler *scheduler, struct task *t)
+void exec_task(struct scheduler *scheduler, struct task *t)
 {
     if (t->task_type == JS_FUNCTION) {
         jsval rval;
@@ -25,8 +23,8 @@ void exec_task(struct flm_scheduler *scheduler, struct task *t)
 
 void dispatch(PtTimestamp time, void *data)
 {
-    struct flm_scheduler *scheduler =
-        (struct flm_scheduler * ) data;
+    struct scheduler *scheduler =
+        (struct scheduler * ) data;
 
     struct task *first = dequeue(scheduler->queue, time);
 
@@ -50,15 +48,15 @@ void dispatch(PtTimestamp time, void *data)
 
 }
 
-struct flm_scheduler * flm_scheduler_create(JSContext *cx)
+struct scheduler * create_scheduler(JSContext *cx)
 {
-    struct flm_scheduler *scheduler = malloc(sizeof(struct flm_scheduler));
+    struct scheduler *scheduler = malloc(sizeof(struct scheduler));
     scheduler->queue = pqueue_create();
     scheduler->cx = cx;
     return scheduler;
 }
 
-void flm_scheduler_start(struct flm_scheduler * scheduler)
+void start_scheduler(struct scheduler * scheduler)
 {
     PtError err;
     err = Pt_Start(RESOLUTION_MS, *dispatch, scheduler);
@@ -70,9 +68,8 @@ void flm_scheduler_start(struct flm_scheduler * scheduler)
 
 }
 
-int flm_scheduler_add_task(struct flm_scheduler *sched, struct task *t)
+void schedule_task(struct scheduler *sched, struct task *t)
 {
     enqueue(sched->queue, t);
-    return  1;
 }
 

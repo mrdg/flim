@@ -4,10 +4,9 @@
 #include "midi_out.h"
 #include "scheduler.h"
 #include "logger.h"
-#include "pqueue.h"
 
 struct flim {
-    struct flm_scheduler *scheduler;
+    struct scheduler *scheduler;
     struct midi_out *output;
     JSRuntime *js_runtime;
     JSContext *js_context;
@@ -15,5 +14,5 @@ struct flim {
 };
 
 struct flim * flm_new();
-int eval(struct flim *flim, char *code);
+void eval(struct flim *flim, char *code);
 
