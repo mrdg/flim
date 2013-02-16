@@ -65,11 +65,15 @@ void start_scheduler(struct scheduler * scheduler)
         printf("Error starting the timer\n");
         exit(1);
     }
-
 }
 
 void schedule_task(struct scheduler *sched, struct task *t)
 {
-    enqueue(sched->queue, t);
+    PtTimestamp now = Pt_Time();
+    if (t->start <= now) {
+        exec_task(sched, t);
+    } else {
+        enqueue(sched->queue, t);
+    }
 }
 
