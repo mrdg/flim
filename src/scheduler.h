@@ -8,7 +8,7 @@
 #include "porttime.h"
 #endif
 
-#include "../js-1.8.5/js/src/jsapi.h"
+#include "js/jsapi.h"
 
 struct scheduler {
     struct pqueue *queue;

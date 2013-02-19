@@ -1,4 +1,4 @@
-#include "../js-1.8.5/js/src/jsapi.h"
+#include "js/jsapi.h"
 
 #include "server.h"
 #include "midi_out.h"
