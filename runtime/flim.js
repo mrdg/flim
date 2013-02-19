@@ -14,14 +14,14 @@ function metronome(bpm) {
   }
 }
 
-function makeMetre(nominators, denominator) {
-  var metreLength = _.inject(nominators, function(sum, n) {
+function makeMetre(numerators, denominator) {
+  var metreLength = _.inject(numerators, function(sum, n) {
     return sum += n
   }, 0)
 
   return function(time, beat) {
     var qtime = (time / denominator) % metreLength,
-        metre = nominators,
+        metre = numerators,
         a = metre[0],
         b = 0
 
