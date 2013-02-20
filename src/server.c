@@ -49,6 +49,6 @@ void flm_server_start(struct flim *flim)
 
         buffer[received] = 0;
         eval(flim, buffer);
+        close(client);
     }
-    close(client);
 }
