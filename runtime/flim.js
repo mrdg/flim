@@ -1,15 +1,15 @@
 function metronome(bpm) {
   var bpm = bpm,
-      beatLength = 60.0 / bpm,
+      beatLength = (60.0 / bpm) * 1000.0,
       start = now()
 
   return {
     time: function(numberOfBeats) {
-      return numberOfBeats * beatLength * 1000
+      return numberOfBeats * beatLength
     },
 
-    beat: function(quantize) {
-      return Math.ceil((now() - start) / (1000 * beatLength))
+    beat: function() {
+      return Math.ceil(now() / beatLength)
     }
   }
 }
