@@ -10,7 +10,12 @@ function metronome(bpm) {
 
     beat: function() {
       return Math.ceil(now() / beatLength)
+    },
+
+    dur: function() {
+      return beatLength
     }
+
   }
 }
 
