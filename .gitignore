@@ -7,3 +7,4 @@ flim
 tests/*.o
 js-1.8.5
 play.js
+*.js
