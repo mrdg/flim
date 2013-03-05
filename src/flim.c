@@ -4,8 +4,8 @@
 
 struct flim *flim;
 
-void reportError(JSContext *cx, const char *message, JSErrorReport *report) {
-            flm_log(message);
+void report_error(JSContext *cx, const char *message, JSErrorReport *report) {
+    flm_log(message);
 }
 
 static JSBool js_print(JSContext *cx, uintN argc, jsval *vp)
@@ -167,7 +167,7 @@ void initialize_js(struct flim *flim)
     flim->js_context = JS_NewContext(flim->js_runtime, 8192);
     JS_SetOptions(flim->js_context, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT);
     JS_SetVersion(flim->js_context, JSVERSION_LATEST);
-    JS_SetErrorReporter(flim->js_context, reportError);
+    JS_SetErrorReporter(flim->js_context, report_error);
 
     flim->global = JS_NewCompartmentAndGlobalObject(
                                     flim->js_context, &global_class, NULL);
