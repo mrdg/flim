@@ -1224,3 +1224,7 @@
   });
 
 }).call(this);
+
+_.extend(this, _)
+this.empty  = this.isEmpty
+this.equals = this.isEqual

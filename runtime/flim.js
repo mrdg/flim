@@ -1,3 +1,6 @@
+this.cos = Math.cos
+this.random = Math.random
+
 function metronome(bpm) {
   var bpm = bpm,
       beatLength = (60.0 / bpm) * 1000.0,
