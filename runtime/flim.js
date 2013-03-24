@@ -74,3 +74,19 @@ function instrument(options) {
     }
   }
 }
+
+function playChord(time, pitches, velocity, duration, channel) {
+  _.each(pitches, function(pitch) {
+    note(time, pitch, velocity, duration, channel)
+  })
+}
+
+function assoc(object, lists) {
+  return first(select(lists, function(list) {
+    return equals(first(list), object)
+  }))
+}
+
+function sample(list) {
+  return list[rand(0, list.length - 1)]
+}
